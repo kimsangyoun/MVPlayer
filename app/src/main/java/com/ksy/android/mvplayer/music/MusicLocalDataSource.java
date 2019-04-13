@@ -27,10 +27,10 @@ public class MusicLocalDataSource implements MusicDataSource {
         try{
             ArrayList<Music> mMusicList = new ArrayList<>();
 
-            if (mCursor==null){
+            //if (mCursor==null){
                 mCursor=mContext.getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                         null, null, null, MediaStore.Audio.Media.DEFAULT_SORT_ORDER);
-            }
+
 
             while (mCursor.moveToNext()){
                 Music music=new Music();

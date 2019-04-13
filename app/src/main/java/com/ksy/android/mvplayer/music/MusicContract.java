@@ -13,6 +13,7 @@ public interface  MusicContract {
         //뷰에서 진행할 메소드 정의.
         void setLoadingIndicator(boolean active);
         void setMusic(List<Music> _music);
+        String getFragmentTag();
         //void initView(Account account);
     }
 
@@ -23,5 +24,6 @@ public interface  MusicContract {
         //void setAutoSignIn(boolean flag);
         void init();
         void getMusicList();
+        View getViewByTag(String tag);
     }
 }

@@ -2,16 +2,26 @@ package com.ksy.android.mvplayer.music;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.SharedElementCallback;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.transition.TransitionInflater;
+import android.transition.TransitionSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.ksy.android.mvplayer.R;
 import com.ksy.android.mvplayer.adapter.AdapterMusiclist;
@@ -19,6 +29,7 @@ import com.ksy.android.mvplayer.util.DLogUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -27,10 +38,12 @@ public class MusicListFragment extends Fragment implements MusicContract.View{
     private MusicContract.Presenter mPresenter;
     @BindView(R.id.music_recycler_view)
     RecyclerView mMusicList;
-
     RecyclerView.Adapter mAdapter;
     ArrayList<Music> mMusicItems;
     Context mContext;
+    @BindView(R.id.ctrAlbumImg)
+    ImageView songImageView;
+
 
     public MusicListFragment() {
         // 프래그먼트 생성자.
@@ -43,9 +56,42 @@ public class MusicListFragment extends Fragment implements MusicContract.View{
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        scrollToPosition();
+    }
+    private void scrollToPosition() {
+        mMusicList.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v,
+                                       int left,
+                                       int top,
+                                       int right,
+                                       int bottom,
+                                       int oldLeft,
+                                       int oldTop,
+                                       int oldRight,
+                                       int oldBottom) {
+                mMusicList.removeOnLayoutChangeListener(this);
+                final RecyclerView.LayoutManager layoutManager = mMusicList.getLayoutManager();
+                View viewAtPosition = layoutManager.findViewByPosition(MusicActivity.currentPosition);
+                // Scroll to position if the view for the current position is null (not currently part of
+                // layout manager children), or it's not completely visible.
+                if (viewAtPosition == null || layoutManager
+                        .isViewPartiallyVisible(viewAtPosition, false, true)) {
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            layoutManager.scrollToPosition(MusicActivity.currentPosition);
+                        }
+                    }, 200);
 
+                }
+            }
+        });
+    }
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -53,15 +99,16 @@ public class MusicListFragment extends Fragment implements MusicContract.View{
         View root = inflater.inflate(R.layout.frag_musiclist, container, false);
         ButterKnife.bind(this, root);
         mContext = getActivity();
-        if(mContext ==null){
-            DLogUtils.i("널이래!!");
-        }
-
         mPresenter.init();
+
         DisplayMetrics metrics = new DisplayMetrics();
         this.getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
         mMusicItems = new ArrayList();
-        mAdapter = new AdapterMusiclist(mMusicItems,mContext);
+
+      //  if(mAdapter ==null) {
+            mAdapter = new AdapterMusiclist(mMusicItems, mContext,this);
+     //   }
         mMusicList.setAdapter(mAdapter);
         LinearLayoutManager llm = new LinearLayoutManager(mContext);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
@@ -69,7 +116,37 @@ public class MusicListFragment extends Fragment implements MusicContract.View{
         mMusicList.setItemAnimator(new DefaultItemAnimator());
 
         mPresenter.getMusicList();
+
         setHasOptionsMenu(false);
+
+        prepareTransitions();
+        postponeEnterTransition();
+        //startPostponedEnterTransition();
+        Uri uri = Uri.parse(mMusicItems.get(1).suri);
+        songImageView.setImageURI(uri);
+        songImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                MusicListFragment simpleFragmentA = (MusicListFragment)mPresenter.getViewByTag("ss");
+                MusicPlayFragment simpleFragmentB = MusicPlayFragment.newInstance();
+               // songImageView.findViewById(R.id.ctrAlbumImg)
+                ((TransitionSet) simpleFragmentA.getExitTransition()).excludeTarget(v, true);
+                simpleFragmentB.setPresenter(mPresenter);
+                simpleFragmentB.setMusic(mMusicItems);
+//                ((TransitionSet) simpleFragmentB.getExitTransition()).excludeTarget(v, true);
+                ImageView transitioningView = v.findViewById(R.id.ctrAlbumImg);
+                getFragmentManager()
+                        .beginTransaction()
+                        .setReorderingAllowed(true) // Optimize for shared element transition
+                        .addSharedElement(transitioningView, transitioningView.getTransitionName())
+                        .replace(R.id.musicListFrame, simpleFragmentB, "PLAYER")
+                        .addToBackStack(null)
+                        .commit();
+
+            }
+        });
+
         return root;
     }
 
@@ -99,8 +176,39 @@ public class MusicListFragment extends Fragment implements MusicContract.View{
 
     @Override
     public void setMusic(List<Music> _music) {
-        DLogUtils.i("뮤직옴 " + _music.size());
+        DLogUtils.i("뮤직옴 " + _music.size() + this.getTag());
         this.mMusicItems.addAll(_music);
         mAdapter.notifyDataSetChanged();
+    }
+    public ArrayList<Music> getmMusic(){
+        return this.mMusicItems;
+    }
+    @Override
+    public String getFragmentTag(){
+        return this.getTag();
+    }
+
+    private void prepareTransitions() {
+        setExitTransition(TransitionInflater.from(getContext())
+                .inflateTransition(R.transition.grid_exit_transition));
+
+        // A similar mapping is set at the ImagePagerFragment with a setEnterSharedElementCallback.
+        setExitSharedElementCallback(
+                new SharedElementCallback() {
+                    @Override
+                    public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
+                        // Locate the ViewHolder for the clicked position.
+
+                        RecyclerView.ViewHolder selectedViewHolder = mMusicList
+                                .findViewHolderForAdapterPosition(MusicActivity.currentPosition);
+
+                        if (selectedViewHolder == null || selectedViewHolder.itemView == null) {
+                            return;
+                        }
+
+                      sharedElements
+                                .put(names.get(0), selectedViewHolder.itemView.findViewById(R.id.mlist_img01));
+                    }
+                });
     }
 }

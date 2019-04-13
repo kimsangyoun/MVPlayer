@@ -1,19 +1,119 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <LinearLayout
-        android:orientation="vertical"
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/pager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/hola_back"
-        android:gravity="bottom">
-        <android.support.v4.view.ViewPager
-            android:id="@+id/pager"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_alignParentTop="true" />
+        android:layout_height="0dp"
+        android:layout_alignParentTop="true"
+        app:layout_constraintHeight_percent="0.6"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <SeekBar
+        android:id="@+id/songSeek"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/pager"/>
+    <android.support.constraint.Barrier
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintHeight_percent="0.4"
+        app:layout_constraintTop_toBottomOf="@id/songSeek" />
+    <TextView
+        android:id="@+id/seekSrtTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="8sp"
+        android:text="00:00"
+        app:layout_constraintTop_toBottomOf="@+id/songSeek"
+        app:layout_constraintStart_toStartOf="@id/guideline1"/>
+    <TextView
+        android:id="@+id/seekEndTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="8sp"
+        android:text="05:00"
+        app:layout_constraintTop_toBottomOf="@+id/songSeek"
+        app:layout_constraintEnd_toEndOf="@id/guideline2"/>
 
-    </LinearLayout>
-</RelativeLayout>
+    <TextView
+        android:id="@+id/songTitleTxt"
+        android:text="Titanum(Feat. Sia)"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textSize="15sp"
+        android:lines="1"
+        app:layout_constraintHorizontal_weight="0.9"
+        app:layout_constraintVertical_chainStyle="spread"
+        app:layout_constraintLeft_toRightOf="@id/guideline1"
+        app:layout_constraintTop_toBottomOf="@id/seekSrtTxt"
+        app:layout_constraintBottom_toTopOf="@+id/songSingerTxt"/>
+    <Button
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:text="♡"
+        android:layout_margin="0dp"
+        android:padding="0dp"
+        app:layout_constraintRight_toLeftOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@id/seekEndTxt"/>
+
+    <TextView
+        android:id="@+id/songSingerTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:lines="1"
+        android:text="G.고릴라"
+        android:textSize="12sp"
+        app:layout_constraintLeft_toRightOf="@+id/guideline1"
+        app:layout_constraintTop_toBottomOf="@+id/songTitleTxt"
+        app:layout_constraintBottom_toTopOf="@+id/songAliasTxt"/>
+
+    <TextView
+        android:id="@+id/songAliasTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:lines="2"
+        android:textSize="12sp"
+        android:layout_marginTop="15dp"
+        android:text="On the street where you live \n All you live live likve"
+        app:layout_constraintLeft_toRightOf="@+id/guideline1"
+        app:layout_constraintTop_toBottomOf="@id/songSingerTxt"
+        app:layout_constraintBottom_toTopOf="@+id/ctrDtlView"/>
+
+    <include layout="@layout/layout_dtlcontroller"
+        android:id="@+id/ctrDtlView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/ctrView"
+        />
+
+    <include layout="@layout/layout_controller"
+        android:id="@+id/ctrView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline1"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.05" />
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.95" />
+
+
+
+</android.support.constraint.ConstraintLayout>
 
