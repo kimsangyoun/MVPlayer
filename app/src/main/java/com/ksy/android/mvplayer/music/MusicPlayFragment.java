@@ -38,8 +38,8 @@ public class MusicPlayFragment extends Fragment implements MusicContract.View{
     private ViewPager mPager;
     ArrayList<Music> mMusicItems = new ArrayList();
     AdapterAlbumImglist mAdapter;
-   // @BindView(R.id.ctrAlbumImg)
-   // ImageView songImageView;
+    @BindView(R.id.ctrAlbumImg)
+    ImageView songImageView;
     public int currentPage = 0;
 
     public MusicPlayFragment() {
@@ -63,7 +63,7 @@ public class MusicPlayFragment extends Fragment implements MusicContract.View{
         View root = inflater.inflate(R.layout.frag_musicplay, container, false);
         ButterKnife.bind(this, root);
         mContext = getActivity();
-       // songImageView.setVisibility(View.INVISIBLE);
+        songImageView.setVisibility(View.INVISIBLE);
         if(mPresenter !=null){
             mPresenter.init();
         }

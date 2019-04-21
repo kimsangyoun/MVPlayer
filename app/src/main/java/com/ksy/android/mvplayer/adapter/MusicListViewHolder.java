@@ -56,7 +56,7 @@ public class MusicListViewHolder extends RecyclerView.ViewHolder implements  Vie
         singer.setText(data.sartist);
 
         setImage(data.suri, position);
-        photo.setTransitionName(data.suri);
+       // photo.setTransitionName(data.suri);
         // Picasso.with(mContext).load(uri).placeholder(R.drawable.music_default).error(R.drawable.music_default).resize(175, 175).into(photo);
         //mLabel.setText(data);
         mCurPosition = position;

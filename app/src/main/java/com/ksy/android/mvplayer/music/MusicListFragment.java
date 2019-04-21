@@ -25,11 +25,13 @@ import android.widget.Toast;
 
 import com.ksy.android.mvplayer.R;
 import com.ksy.android.mvplayer.adapter.AdapterMusiclist;
+import com.ksy.android.mvplayer.adapter.ViewHolderListener;
 import com.ksy.android.mvplayer.util.DLogUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -44,6 +46,73 @@ public class MusicListFragment extends Fragment implements MusicContract.View{
     @BindView(R.id.ctrAlbumImg)
     ImageView songImageView;
 
+    public class ViewHolderListenerImpl implements ViewHolderListener {
+
+        private Fragment fragment;
+        private AtomicBoolean enterTransitionStarted;
+
+        ViewHolderListenerImpl(Fragment fragment) {
+            this.fragment = fragment;
+            this.enterTransitionStarted = new AtomicBoolean();
+        }
+
+        @Override
+        public void onLoadCompleted(ImageView view, int position) {
+            // Call startPostponedEnterTransition only when the 'selected' image loading is completed.
+            // Toast.makeText(fragment.getContext(),"온로드 컴플리티드",Toast.LENGTH_LONG).show();
+         /*   if (MusicActivity.currentPosition != position) {
+                return;
+            }
+            if (enterTransitionStarted.getAndSet(true)) {
+                return;
+            }*/
+           // if(fragment !=null)
+            // fragment.startPostponedEnterTransition();
+        }
+
+        /**
+         * Handles a view click by setting the current position to the given {@code position} and
+         * starting a {@link  MusicPlayFragment} which displays the image at the position.
+         *
+         * @param view the clicked {@link ImageView} (the shared element view will be re-mapped at the
+         * GridFragment's SharedElementCallback)
+         * @param position the selected view position
+         */
+        @Override
+        public void onItemClicked(View view, int position) {
+            // Update the position.
+            MusicActivity.currentPosition = position;
+            Uri uri = Uri.parse(mMusicItems.get(position).suri);
+            songImageView.setImageURI(uri);
+            songImageView.setTransitionName(mMusicItems.get(position).suri);
+
+         /*   Uri uri = Uri.parse(mMusicItems.get(1).suri);
+            songImageView.setImageURI(uri);
+            songImageView.setTransitionName(mMusicItems.get(1).suri);*/
+          /*  MusicActivity.currentPosition = position;
+
+            // Exclude the clicked card from the exit transition (e.g. the card will disappear immediately
+            // instead of fading out with the rest to prevent an overlapping animation of fade and move).
+            ((TransitionSet) fragment.getExitTransition()).excludeTarget(view, true);
+
+            ImageView transitioningView = view.findViewById(R.id.mlist_img01);
+
+            // songImageView.findViewById(R.id.ctrAlbumImg)
+            MusicPlayFragment simpleFragmentB = MusicPlayFragment.newInstance();
+            simpleFragmentB.setPresenter(((MusicActivity)fragment.getActivity()).getMusicPresenter());
+            simpleFragmentB.setMusic(((MusicListFragment)fragment).getmMusic());
+           // simpleFragmentB.setMusic(mMusicList);
+            fragment.getFragmentManager()
+                    .beginTransaction()
+                    .setReorderingAllowed(true) // Optimize for shared element transition
+                    .addSharedElement(transitioningView, transitioningView.getTransitionName())
+                    .replace(R.id.musicListFrame,simpleFragmentB, MusicPlayFragment.class
+                            .getSimpleName())
+                    .addToBackStack(null)
+                    .commit();*/
+        }
+
+    }
 
     public MusicListFragment() {
         // 프래그먼트 생성자.
@@ -106,9 +175,9 @@ public class MusicListFragment extends Fragment implements MusicContract.View{
 
         mMusicItems = new ArrayList();
 
-      //  if(mAdapter ==null) {
-            mAdapter = new AdapterMusiclist(mMusicItems, mContext,this);
-     //   }
+       if(mAdapter ==null) {
+            mAdapter = new AdapterMusiclist(mMusicItems, mContext,this,new ViewHolderListenerImpl(this));
+        }
         mMusicList.setAdapter(mAdapter);
         LinearLayoutManager llm = new LinearLayoutManager(mContext);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
@@ -117,30 +186,38 @@ public class MusicListFragment extends Fragment implements MusicContract.View{
 
         mPresenter.getMusicList();
 
+        Uri uri = Uri.parse(mMusicItems.get(MusicActivity.currentPosition ).suri);
+
+        songImageView.setImageURI(uri);
+        songImageView.setTransitionName(mMusicItems.get(MusicActivity.currentPosition ).suri);
         setHasOptionsMenu(false);
 
         prepareTransitions();
+       // postponeEnterTransition();
         postponeEnterTransition();
-        //startPostponedEnterTransition();
-        Uri uri = Uri.parse(mMusicItems.get(1).suri);
-        songImageView.setImageURI(uri);
+        startPostponedEnterTransition();
+
         songImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                MusicListFragment simpleFragmentA = (MusicListFragment)mPresenter.getViewByTag("ss");
-                MusicPlayFragment simpleFragmentB = MusicPlayFragment.newInstance();
-               // songImageView.findViewById(R.id.ctrAlbumImg)
+                MusicListFragment simpleFragmentA = (MusicListFragment)mPresenter.getViewByTag("LIST");
+
                 ((TransitionSet) simpleFragmentA.getExitTransition()).excludeTarget(v, true);
-                simpleFragmentB.setPresenter(mPresenter);
-                simpleFragmentB.setMusic(mMusicItems);
-//                ((TransitionSet) simpleFragmentB.getExitTransition()).excludeTarget(v, true);
+               // MusicActivity.currentPosition = 1;
                 ImageView transitioningView = v.findViewById(R.id.ctrAlbumImg);
-                getFragmentManager()
+
+                // songImageView.findViewById(R.id.ctrAlbumImg)
+                MusicPlayFragment simpleFragmentB = MusicPlayFragment.newInstance();
+                simpleFragmentB.setPresenter(((MusicActivity)simpleFragmentA.getActivity()).getMusicPresenter());
+                simpleFragmentB.setMusic(simpleFragmentA.getmMusic());
+                // simpleFragmentB.setMusic(mMusicList);
+                simpleFragmentA.getFragmentManager()
                         .beginTransaction()
                         .setReorderingAllowed(true) // Optimize for shared element transition
                         .addSharedElement(transitioningView, transitioningView.getTransitionName())
-                        .replace(R.id.musicListFrame, simpleFragmentB, "PLAYER")
+                        .replace(R.id.musicListFrame,simpleFragmentB, MusicPlayFragment.class
+                                .getSimpleName())
                         .addToBackStack(null)
                         .commit();
 
@@ -148,6 +225,10 @@ public class MusicListFragment extends Fragment implements MusicContract.View{
         });
 
         return root;
+    }
+
+    public void choiseMusic(int position){
+
     }
 
     @Override
@@ -199,15 +280,15 @@ public class MusicListFragment extends Fragment implements MusicContract.View{
                     public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
                         // Locate the ViewHolder for the clicked position.
 
-                        RecyclerView.ViewHolder selectedViewHolder = mMusicList
+                       /* RecyclerView.ViewHolder selectedViewHolder = mMusicList
                                 .findViewHolderForAdapterPosition(MusicActivity.currentPosition);
 
                         if (selectedViewHolder == null || selectedViewHolder.itemView == null) {
                             return;
                         }
-
+*/
                       sharedElements
-                                .put(names.get(0), selectedViewHolder.itemView.findViewById(R.id.mlist_img01));
+                                .put(names.get(0), songImageView.findViewById(R.id.ctrAlbumImg));
                     }
                 });
     }
